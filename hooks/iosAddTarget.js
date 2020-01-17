@@ -32,19 +32,20 @@
 const PLUGIN_ID = 'cc.fovea.cordova.openwith';
 const BUNDLE_SUFFIX = '.shareextension';
 
-var fs = require('fs');
-var path = require('path');
-const getPluginVariable = require('./utils/getPluginVariable');
+const fs = require('fs');
+const path = require('path');
+const PluginVariable = require('./utils/PluginVariable');
+let pluginVariable;
 
 function redError(message) {
   return new Error('"' + PLUGIN_ID + '" \x1b[1m\x1b[31m' + message + '\x1b[0m');
 }
 
 function replacePreferencesInFile(filePath, preferences) {
-  var content = fs.readFileSync(filePath, 'utf8');
-  for (var i = 0; i < preferences.length; i++) {
-    var pref = preferences[i];
-    var regexp = new RegExp(pref.key, "g");
+  let content = fs.readFileSync(filePath, 'utf8');
+  for (let i = 0; i < preferences.length; i++) {
+    const pref = preferences[i];
+    const regexp = new RegExp(pref.key, 'g');
     content = content.replace(regexp, pref.value);
   }
   fs.writeFileSync(filePath, content);
@@ -53,8 +54,8 @@ function replacePreferencesInFile(filePath, preferences) {
 // Determine the full path to the app's xcode project file.
 function findXCodeproject(context, callback) {
   fs.readdir(iosFolder(context), function(err, data) {
-    var projectFolder;
-    var projectName;
+    let projectFolder;
+    let projectName;
     // Find the project folder by looking for *.xcodeproj
     if (data && data.length) {
       data.forEach(function(folder) {
@@ -85,9 +86,9 @@ function iosFolder(context) {
 }
 
 function parsePbxProject(context, pbxProjectPath) {
-  var xcode = require('xcode');
+  const xcode = require('xcode');
   console.log('    Parsing existing project at location: ' + pbxProjectPath + '...');
-  var pbxProject;
+  let pbxProject;
   if (context.opts.cordova.project) {
     pbxProject = context.opts.cordova.project.parseProjectFile(context.opts.projectRoot).xcode;
   } else {
@@ -98,14 +99,14 @@ function parsePbxProject(context, pbxProjectPath) {
 }
 
 function forEachShareExtensionFile(context, callback) {
-  var shareExtensionFolder = path.join(iosFolder(context), 'ShareExtension');
+  const shareExtensionFolder = path.join(iosFolder(context), 'ShareExtension');
   fs.readdirSync(shareExtensionFolder).forEach(function(name) {
     // Ignore junk files like .DS_Store
     if (!/^\..*/.test(name)) {
       callback({
         name: name,
         path: path.join(shareExtensionFolder, name),
-        extension: path.extname(name)
+        extension: path.extname(name),
       });
     }
   });
@@ -116,47 +117,47 @@ function projectPlistPath(context, projectName) {
 }
 
 function projectPlistJson(context, projectName) {
-  var plist = require('plist');
-  var path = projectPlistPath(context, projectName);
+  const plist = require('plist');
+  const path = projectPlistPath(context, projectName);
   return plist.parse(fs.readFileSync(path, 'utf8'));
 }
 
 function getPreferences(context, projectName) {
-  var plist = projectPlistJson(context, projectName);
-  var group = "group." + plist.CFBundleIdentifier + BUNDLE_SUFFIX;
-  if (getPluginVariable(context, 'GROUP_IDENTIFIER') !== "") {
-    group = getPluginVariable(context, 'IOS_GROUP_IDENTIFIER');
+  const plist = projectPlistJson(context, projectName);
+  let group = 'group.' + plist.CFBundleIdentifier + BUNDLE_SUFFIX;
+  if (pluginVariable.get('GROUP_IDENTIFIER') !== '') {
+    group = pluginVariable.get('IOS_GROUP_IDENTIFIER');
   }
   return [{
     key: '__DISPLAY_NAME__',
-    value: projectName
+    value: projectName,
   }, {
     key: '__BUNDLE_IDENTIFIER__',
-    value: plist.CFBundleIdentifier + BUNDLE_SUFFIX
+    value: plist.CFBundleIdentifier + BUNDLE_SUFFIX,
   }, {
     key: '__GROUP_IDENTIFIER__',
-    value: group
+    value: group,
   }, {
     key: '__BUNDLE_SHORT_VERSION_STRING__',
-    value: plist.CFBundleShortVersionString
+    value: plist.CFBundleShortVersionString,
   }, {
     key: '__BUNDLE_VERSION__',
-    value: plist.CFBundleVersion
+    value: plist.CFBundleVersion,
   }, {
     key: '__URL_SCHEME__',
-    value: getPluginVariable(context, 'IOS_URL_SCHEME')
+    value: pluginVariable.get('IOS_URL_SCHEME'),
   }, {
     key: '__UNIFORM_TYPE_IDENTIFIER__',
-    value: getPluginVariable(context, 'IOS_UNIFORM_TYPE_IDENTIFIER')
+    value: pluginVariable.get('IOS_UNIFORM_TYPE_IDENTIFIER'),
   }];
 }
 
 // Return the list of files in the share extension project, organized by type
 function getShareExtensionFiles(context) {
-  var files = { source: [], plist: [], resource: [] };
-  var FILE_TYPES = { '.h': 'source', '.m': 'source', '.plist': 'plist' };
+  const files = { source: [], plist: [], resource: [] };
+  const FILE_TYPES = { '.h': 'source', '.m': 'source', '.plist': 'plist' };
   forEachShareExtensionFile(context, function(file) {
-    var fileType = FILE_TYPES[file.extension] || 'resource';
+    const fileType = FILE_TYPES[file.extension] || 'resource';
     files[fileType].push(file);
   });
   return files;
@@ -181,8 +182,8 @@ function printShareExtensionFiles(files) {
 }
 
 function setShareUti(context, preferences) {
-  var json = sharePlistJson(context);
-  var uti = preferences.find(function(preference) {
+  const json = sharePlistJson(context);
+  const uti = preferences.find(function(preference) {
     return preference.key === '__UNIFORM_TYPE_IDENTIFIER__';
   });
 
@@ -207,19 +208,19 @@ function setShareUti(context, preferences) {
 }
 
 function sharePlistJson(context) {
-  var path = sharePlistPath(context);
+  const path = sharePlistPath(context);
   return plistJson(path);
 }
 
 function plistJson(path) {
-  var plist = require('plist');
+  const plist = require('plist');
   return plist.parse(fs.readFileSync(path, 'utf8'));
 }
 
 function setSharePlist(context, json) {
-  var plist = require('plist');
-  var path = sharePlistPath(context);
-  fs.writeFileSync(path, plist.build(json))
+  const plist = require('plist');
+  const path = sharePlistPath(context);
+  fs.writeFileSync(path, plist.build(json));
 }
 
 function sharePlistPath(context) {
@@ -229,32 +230,31 @@ function sharePlistPath(context) {
 console.log('Adding target "' + PLUGIN_ID + '/ShareExtension" to XCode project');
 
 module.exports = function(context) {
-
-  var Q = require('q');
-  var deferral = new Q.defer();
+  const Q = require('q');
+  const deferral = new Q.defer();
+  pluginVariable = new PluginVariable(context);
 
   // if (context.opts.cordova.platforms.indexOf('ios') < 0) {
   //   log('You have to add the ios platform before adding this plugin!', 'error');
   // }
 
   findXCodeproject(context, function(projectFolder, projectName) {
-
     console.log('  - Folder containing your iOS project: ' + iosFolder(context));
 
-    var pbxProjectPath = path.join(projectFolder, 'project.pbxproj');
-    var pbxProject = parsePbxProject(context, pbxProjectPath);
+    const pbxProjectPath = path.join(projectFolder, 'project.pbxproj');
+    const pbxProject = parsePbxProject(context, pbxProjectPath);
 
-    var files = getShareExtensionFiles(context);
+    const files = getShareExtensionFiles(context);
     // printShareExtensionFiles(files);
 
-    var preferences = getPreferences(context, projectName);
+    const preferences = getPreferences(context, projectName);
     files.plist.concat(files.source).forEach(function(file) {
       replacePreferencesInFile(file.path, preferences);
       // console.log('    Successfully updated ' + file.name);
     });
 
     // Find if the project already contains the target and group
-    var target = pbxProject.pbxTargetByName('ShareExt');
+    let target = pbxProject.pbxTargetByName('ShareExt');
     if (target) {
       console.log('    ShareExt target already exists.');
     }
@@ -275,7 +275,7 @@ module.exports = function(context) {
     }
 
     // Create a separate PBXGroup for the shareExtensions files, name has to be unique and path must be in quotation marks
-    var pbxGroupKey = pbxProject.findPBXGroupKey({ name: 'ShareExtension' });
+    let pbxGroupKey = pbxProject.findPBXGroupKey({ name: 'ShareExtension' });
     if (pbxProject) {
       console.log('    ShareExtension group already exists.');
     }
@@ -283,7 +283,7 @@ module.exports = function(context) {
       pbxGroupKey = pbxProject.pbxCreateGroup('ShareExtension', 'ShareExtension');
 
       // Add the PbxGroup to cordovas "CustomTemplate"-group
-      var customTemplateKey = pbxProject.findPBXGroupKey({ name: 'CustomTemplate' });
+      const customTemplateKey = pbxProject.findPBXGroupKey({ name: 'CustomTemplate' });
       pbxProject.addToPbxGroup(pbxGroupKey, customTemplateKey);
     }
 
@@ -302,17 +302,17 @@ module.exports = function(context) {
       pbxProject.addResourceFile(file.name, { target: target.uuid }, pbxGroupKey);
     });
 
-    //Add development team and provisioning profile
-    var PROVISIONING_PROFILE = getPluginVariable(context, 'SHAREEXT_PROVISIONING_PROFILE');
-    var DEVELOPMENT_TEAM = getPluginVariable(context, 'SHAREEXT_DEVELOPMENT_TEAM');
+    // Add development team and provisioning profile
+    const PROVISIONING_PROFILE = pluginVariable.get('SHAREEXT_PROVISIONING_PROFILE');
+    const DEVELOPMENT_TEAM = pluginVariable.get('SHAREEXT_DEVELOPMENT_TEAM');
     console.log('Adding team', DEVELOPMENT_TEAM, 'and provisoning profile', PROVISIONING_PROFILE);
     if (PROVISIONING_PROFILE && DEVELOPMENT_TEAM) {
-      var configurations = pbxProject.pbxXCBuildConfigurationSection();
-      for (var key in configurations) {
+      const configurations = pbxProject.pbxXCBuildConfigurationSection();
+      for (const key in configurations) {
         if (typeof configurations[key].buildSettings !== 'undefined') {
-          var buildSettingsObj = configurations[key].buildSettings;
+          const buildSettingsObj = configurations[key].buildSettings;
           if (typeof buildSettingsObj['PRODUCT_NAME'] !== 'undefined') {
-            var productName = buildSettingsObj['PRODUCT_NAME'];
+            const productName = buildSettingsObj['PRODUCT_NAME'];
             if (productName.indexOf('ShareExt') >= 0) {
               buildSettingsObj['PROVISIONING_PROFILE'] = PROVISIONING_PROFILE;
               buildSettingsObj['DEVELOPMENT_TEAM'] = DEVELOPMENT_TEAM;

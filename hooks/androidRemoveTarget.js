@@ -1,22 +1,19 @@
-const { remove: removeIntentFilterMime } = require('./utils/androidIntentFilterMime');
-const { androidManifest: getManifestPath } = require('./utils/projectPath');
-const getPluginVariable = require('./utils/getPluginVariable');
-let projectContext;
-let manifestPath;
+const AndroidIntentFilterMime = require('./utils/AndroidIntentFilterMime');
+const PluginVariable = require('./utils/PluginVariable');
+let androidIntentFilterMime;
 
-module.exports = function(context) {
-  projectContext = context;
-  manifestPath = getManifestPath(context);
-  removeShareMime();
-}
-
-function removeShareMime() {
-  let ANDROID_MIME_TYPE = getPluginVariable(projectContext, 'ANDROID_MIME_TYPE');
+function removeShareMime(ANDROID_MIME_TYPE) {
   if (ANDROID_MIME_TYPE === '*/*') {
-    removeIntentFilterMime(manifestPath, 'image/*');
-    removeIntentFilterMime(manifestPath, 'video/*');
-    removeIntentFilterMime(manifestPath, 'text/plain');
+    androidIntentFilterMime.remove('image/*');
+    androidIntentFilterMime.remove('video/*');
+    androidIntentFilterMime.remove('text/plain');
   } else {
-    removeIntentFilterMime(manifestPath, ANDROID_MIME_TYPE);
+    androidIntentFilterMime.remove(ANDROID_MIME_TYPE);
   }
 }
+
+module.exports = function(context) {
+  const pluginVariable = new PluginVariable(context);
+  androidIntentFilterMime = new AndroidIntentFilterMime(context);
+  removeShareMime(pluginVariable.get('ANDROID_MIME_TYPE'));
+};
