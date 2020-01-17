@@ -192,13 +192,13 @@ function setShareUti(context, preferences) {
   } else if (uti.value === 'public.video') {
     json.NSExtension.NSExtensionAttributes.NSExtensionActivationRule.NSExtensionActivationSupportsMovieWithMaxCount = 1;
   } else if (uti.value === 'public.url') {
-    json.NSExtension.NSExtensionAttributes.NSExtensionActivationRule.NSExtensionActivationSupportsWebURLWithMaxCount = 1;
+    // json.NSExtension.NSExtensionAttributes.NSExtensionActivationRule.NSExtensionActivationSupportsWebURLWithMaxCount = 1;
   } else if (uti.value === 'public.plain-text') {
     json.NSExtension.NSExtensionAttributes.NSExtensionActivationRule.NSExtensionActivationSupportsText = 1;
   } else if (uti.value === 'public.item') {
     json.NSExtension.NSExtensionAttributes.NSExtensionActivationRule.NSExtensionActivationSupportsImageWithMaxCount = 1;
     json.NSExtension.NSExtensionAttributes.NSExtensionActivationRule.NSExtensionActivationSupportsMovieWithMaxCount = 1;
-    json.NSExtension.NSExtensionAttributes.NSExtensionActivationRule.NSExtensionActivationSupportsWebURLWithMaxCount = 1;
+    // json.NSExtension.NSExtensionAttributes.NSExtensionActivationRule.NSExtensionActivationSupportsWebURLWithMaxCount = 1;
     json.NSExtension.NSExtensionAttributes.NSExtensionActivationRule.NSExtensionActivationSupportsText = 1;
   } else {
     console.error(`Unsupported IOS_UNIFORM_TYPE_IDENTIFIER, should be [public.image | public.video | public.url | pulic.item], but get ${uti.value} instead`);
