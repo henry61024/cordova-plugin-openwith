@@ -252,6 +252,7 @@ module.exports = function(context) {
 
     // Find if the project already contains the target and group
     let target = pbxProject.pbxTargetByName('ShareExt');
+    console.log('target', target);
     if (target) {
       console.log('    ShareExt target already exists.');
     }
@@ -261,7 +262,7 @@ module.exports = function(context) {
 
       // Add PBXNativeTarget to the project
       target = pbxProject.addTarget('ShareExt', 'app_extension', 'ShareExtension');
-
+      console.log('added target', target);
       // Add a new PBXSourcesBuildPhase for our ShareViewController
       // (we can't add it to the existing one because an extension is kind of an extra app)
       pbxProject.addBuildPhase([], 'PBXSourcesBuildPhase', 'Sources', target.uuid);

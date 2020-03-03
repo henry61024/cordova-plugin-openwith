@@ -137,8 +137,10 @@ module.exports = function (context) {
     var files = getShareExtensionFiles(context);
 
     // Find if the project already contains the target and group
-    var target = pbxProject.pbxTargetByName('ShareExtension');
-    var pbxGroupKey = pbxProject.findPBXGroupKey({name: 'ShareExtension'});
+    var target = pbxProject.pbxTargetByName('"ShareExt"');
+    console.log('remove target', target);
+    var pbxGroupKey = pbxProject.findPBXGroupKey({ name: 'ShareExtension' });
+    console.log('pbxGroupKey', pbxGroupKey);
 
     // Remove the PbxGroup from cordovas "CustomTemplate"-group
     if (pbxGroupKey) {
